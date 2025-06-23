@@ -43,13 +43,13 @@ RUN mkdir -p /directus/data && \
 # Copy template package.json
 COPY --chown=node:node ./template/package.json /directus/data/template/package.json
 
-# Copy template source files with explicit schema directory
-COPY --chown=node:node ./template/src/schema/snapshot.json /directus/data/template/src/schema/
-COPY --chown=node:node ./template/src/content /directus/data/template/src/content
-COPY --chown=node:node ./template/src/roles.json /directus/data/template/src/
-COPY --chown=node:node ./template/src/permissions.json /directus/data/template/src/
-COPY --chown=node:node ./template/src/presets.json /directus/data/template/src/
-COPY --chown=node:node ./template/src/settings.json /directus/data/template/src/
+# Copy template source files
+COPY --chown=node:node ./template/src/schema/snapshot.json /directus/data/template/src/schema/snapshot.json
+COPY --chown=node:node ./template/src/content /directus/data/template/src/content/
+COPY --chown=node:node ./template/src/roles.json /directus/data/template/src/roles.json
+COPY --chown=node:node ./template/src/permissions.json /directus/data/template/src/permissions.json
+COPY --chown=node:node ./template/src/presets.json /directus/data/template/src/presets.json
+COPY --chown=node:node ./template/src/settings.json /directus/data/template/src/settings.json
 
 # Copying other directories
 COPY --chown=node:node ./extensions /directus/data/extensions
