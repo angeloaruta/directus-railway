@@ -14,6 +14,11 @@ module.exports = function (env) {
             // Database & storage variables for connecting to PostGIS and S3/local storage
             DB_CLIENT: "pg",
             DB_CONNECTION_STRING: env.DB_CONNECTION_STRING,
+            DB_ACQUIRE_CONNECTION_TIMEOUT: env.DB_ACQUIRE_CONNECTION_TIMEOUT || "600000",
+            DB_POOL__MIN: env.DB_POOL__MIN || "10",
+            DB_POOL__MAX: env.DB_POOL__MAX || "200",
+            DB_POOL__ACQUIRE_TIMEOUT_MILLIS: env.DB_POOL__ACQUIRE_TIMEOUT_MILLIS || "600000",
+
             STORAGE_LOCATIONS: env.STORAGE_LOCATIONS,
             STORAGE_S3_DRIVER: env.STORAGE_S3_DRIVER,
             STORAGE_S3_KEY: env.STORAGE_S3_KEY,
