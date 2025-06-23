@@ -21,18 +21,33 @@ RUN pnpm install @directus-labs/card-select-interfaces && pnpm install @directus
 
 # Migrations and Directus schema update
 RUN npx directus bootstrap
+
+USER root
+
+# Create and set permissions for data directory
+RUN mkdir -p /directus/data && \
+    mkdir -p /directus/data/uploads && \
+    mkdir -p /directus/data/extensions && \
+    mkdir -p /directus/data/templates && \
+    mkdir -p /directus/data/migrations && \
+    mkdir -p /directus/data/snapshots && \
+    mkdir -p /directus/data/template && \
+    chown -R node:node /directus/data && \
+    chmod -R 755 /directus/data
+
 # Copying the extensions, templates, migrations, and snapshots to the Directus container
-COPY ./extensions /directus/data/extensions
-COPY ./templates /directus/data/templates
-COPY ./migrations /directus/data/migrations
-COPY ./snapshots /directus/data/snapshots
-COPY ./template /directus/data/template
-COPY ./config.cjs /directus/data/config.cjs           
+COPY --chown=node:node ./extensions /directus/data/extensions
+COPY --chown=node:node ./templates /directus/data/templates
+COPY --chown=node:node ./migrations /directus/data/migrations
+COPY --chown=node:node ./snapshots /directus/data/snapshots
+COPY --chown=node:node ./template /directus/data/template
+COPY --chown=node:node ./config.cjs /directus/data/config.cjs           
 
 # Custom entrypoint script to run Directus on Railway for migrations, snapshots, and extensions
 COPY entrypoint.sh /directus/entrypoint.sh
 WORKDIR /directus
-USER root
-RUN chmod +x ./entrypoint.sh
+RUN chmod +x ./entrypoint.sh && \
+    chown node:node ./entrypoint.sh
+
 USER node
 ENTRYPOINT ["./entrypoint.sh"]
