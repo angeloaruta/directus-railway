@@ -35,12 +35,17 @@ RUN mkdir -p /directus/data && \
     chown -R node:node /directus/data && \
     chmod -R 755 /directus/data
 
-# Copying the extensions, templates, migrations, and snapshots to the Directus container
+# Copy template package.json
+COPY --chown=node:node ./template/package.json /directus/data/template/package.json
+
+# Copy template source files
+COPY --chown=node:node ./template/src /directus/data/template/src
+
+# Copying other directories
 COPY --chown=node:node ./extensions /directus/data/extensions
 COPY --chown=node:node ./templates /directus/data/templates
 COPY --chown=node:node ./migrations /directus/data/migrations
 COPY --chown=node:node ./snapshots /directus/data/snapshots
-COPY --chown=node:node ./template /directus/data/template
 COPY --chown=node:node ./config.cjs /directus/data/config.cjs           
 
 # Custom entrypoint script to run Directus on Railway for migrations, snapshots, and extensions
@@ -48,6 +53,10 @@ COPY entrypoint.sh /directus/entrypoint.sh
 WORKDIR /directus
 RUN chmod +x ./entrypoint.sh && \
     chown node:node ./entrypoint.sh
+
+# Set environment variables for template
+ENV DIRECTUS_TEMPLATE_PATH=/directus/data/template
+ENV DIRECTUS_TEMPLATE_NAME=directus-template-cms
 
 USER node
 ENTRYPOINT ["./entrypoint.sh"]
