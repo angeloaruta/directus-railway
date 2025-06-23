@@ -21,23 +21,18 @@ RUN pnpm install @directus-labs/card-select-interfaces && pnpm install @directus
 
 # Migrations and Directus schema update
 RUN npx directus bootstrap
-
-# Switch to root for file operations
-USER root
-
 # Copying the extensions, templates, migrations, and snapshots to the Directus container
-COPY --chown=node:node ./extensions /directus/extensions
-COPY --chown=node:node ./templates /directus/templates
-COPY --chown=node:node ./migrations /directus/migrations
-COPY --chown=node:node ./snapshots /directus/snapshots
-COPY --chown=node:node ./template /directus/template
-COPY --chown=node:node ./config.cjs /directus/config.cjs           
+COPY ./extensions /directus/extensions
+COPY ./templates /directus/templates
+COPY ./migrations /directus/migrations
+COPY ./snapshots /directus/snapshots
+COPY ./template /directus/template
+COPY ./config.cjs /directus/config.cjs           
 
 # Custom entrypoint script to run Directus on Railway for migrations, snapshots, and extensions
-COPY --chown=node:node entrypoint.sh /directus/entrypoint.sh
+COPY entrypoint.sh /directus/entrypoint.sh
 WORKDIR /directus
-RUN chmod +x /directus/entrypoint.sh && \
-    chown node:node /directus/entrypoint.sh
-
+USER root
+RUN chmod +x ./entrypoint.sh
 USER node
-CMD ["/bin/sh", "/directus/entrypoint.sh"]
+ENTRYPOINT ["./entrypoint.sh"]
