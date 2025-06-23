@@ -56,18 +56,13 @@ else
     find /directus/data -name "snapshot.json"
 fi
 
-# Import template data if directory exists
+# Import template data if directory exists using schema snapshot
 CONTENT_DIR="${DIRECTUS_TEMPLATE_PATH}/src/content"
 if [ -d "$CONTENT_DIR" ]; then
     echo "Found content directory at $CONTENT_DIR"
     echo "Importing template data..."
-    for file in "$CONTENT_DIR"/*.json; do
-        if [ -f "$file" ]; then
-            collection=$(basename "$file" .json)
-            echo "Importing data for collection: $collection"
-            npx directus import "$collection" "$file" --format=json
-        fi
-    done
+    # Use schema snapshot to import data
+    npx directus schema snapshot "$SCHEMA_FILE" --yes
 else
     echo "Warning: Content directory not found at $CONTENT_DIR"
 fi
@@ -79,7 +74,7 @@ PERMISSIONS_FILE="${DIRECTUS_TEMPLATE_PATH}/src/permissions.json"
 if [ -f "$ROLES_FILE" ]; then
     echo "Found roles file at $ROLES_FILE"
     echo "Importing roles..."
-    npx directus roles import "$ROLES_FILE"
+    npx directus schema apply "$ROLES_FILE" --yes
 else
     echo "Warning: Roles file not found at $ROLES_FILE"
 fi
@@ -87,7 +82,7 @@ fi
 if [ -f "$PERMISSIONS_FILE" ]; then
     echo "Found permissions file at $PERMISSIONS_FILE"
     echo "Importing permissions..."
-    npx directus permissions import "$PERMISSIONS_FILE"
+    npx directus schema apply "$PERMISSIONS_FILE" --yes
 else
     echo "Warning: Permissions file not found at $PERMISSIONS_FILE"
 fi
@@ -99,7 +94,7 @@ SETTINGS_FILE="${DIRECTUS_TEMPLATE_PATH}/src/settings.json"
 if [ -f "$PRESETS_FILE" ]; then
     echo "Found presets file at $PRESETS_FILE"
     echo "Importing presets..."
-    npx directus presets import "$PRESETS_FILE"
+    npx directus schema apply "$PRESETS_FILE" --yes
 else
     echo "Warning: Presets file not found at $PRESETS_FILE"
 fi
@@ -107,7 +102,7 @@ fi
 if [ -f "$SETTINGS_FILE" ]; then
     echo "Found settings file at $SETTINGS_FILE"
     echo "Importing settings..."
-    npx directus settings import "$SETTINGS_FILE"
+    npx directus schema apply "$SETTINGS_FILE" --yes
 else
     echo "Warning: Settings file not found at $SETTINGS_FILE"
 fi
