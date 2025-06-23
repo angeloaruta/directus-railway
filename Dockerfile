@@ -41,13 +41,14 @@ COPY --chown=node:node ./migrations /directus/template/migrations
 COPY --chown=node:node ./snapshots /directus/template/snapshots
 COPY --chown=node:node ./config.cjs /directus/template/config.cjs           
 
+USER root
+
 # Custom entrypoint script to run Directus on Railway for migrations, snapshots, and extensions
-COPY --chown=root:root entrypoint.sh /directus/entrypoint.sh
+COPY entrypoint.sh /directus/entrypoint.sh
 RUN chmod +x /directus/entrypoint.sh
 
 # Set environment variables for template
 ENV DIRECTUS_TEMPLATE_PATH=/directus/data/template
 ENV DIRECTUS_TEMPLATE_NAME=directus-template-cms
 
-USER root
 ENTRYPOINT ["./entrypoint.sh"]
