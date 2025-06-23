@@ -41,14 +41,14 @@ services:
     ports:
       - 8055:8055
     volumes:
-      - ./database:/directus/database
-      - ./uploads:/directus/uploads
-      - ./extensions:/directus/extensions
-      - ./templates:/directus/templates
-      - ./scripts:/directus/scripts
-      - ./snapshots:/directus/snapshots
-      - ./migrations:/directus/migrations
-      - ./template:/directus/template
+      - ./database:/directus/data/database
+      - ./uploads:/directus/data/uploads
+      - ./extensions:/directus/data/extensions
+      - ./templates:/directus/data/templates
+      - ./scripts:/directus/data/scripts
+      - ./snapshots:/directus/data/snapshots
+      - ./migrations:/directus/data/migrations
+      - ./template:/directus/data/template
     depends_on:
       database:
         condition: service_healthy

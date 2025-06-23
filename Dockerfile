@@ -22,16 +22,16 @@ RUN pnpm install @directus-labs/card-select-interfaces && pnpm install @directus
 # Migrations and Directus schema update
 RUN npx directus bootstrap
 # Copying the extensions, templates, migrations, and snapshots to the Directus container
-COPY ./extensions /directus/extensions
-COPY ./templates /directus/templates
-COPY ./migrations /directus/migrations
-COPY ./snapshots /directus/snapshots
-COPY ./template /directus/template
-COPY ./config.cjs /directus/config.cjs           
+COPY ./extensions /directus/data/extensions
+COPY ./templates /directus/data/templates
+COPY ./migrations /directus/data/migrations
+COPY ./snapshots /directus/data/snapshots
+COPY ./template /directus/data/template
+COPY ./config.cjs /directus/data/config.cjs           
 
 # Custom entrypoint script to run Directus on Railway for migrations, snapshots, and extensions
-COPY entrypoint.sh /directus/entrypoint.sh
-WORKDIR /directus
+COPY entrypoint.sh /directus/data/entrypoint.sh
+WORKDIR /directus/data
 USER root
 RUN chmod +x ./entrypoint.sh
 USER node
