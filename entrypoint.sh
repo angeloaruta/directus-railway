@@ -3,30 +3,38 @@
 echo "Starting Directus with template initialization..."
 
 # Debug information
-echo "Checking template directory structure..."
-ls -la ${DIRECTUS_TEMPLATE_PATH}
-echo "Checking template src directory..."
-ls -la ${DIRECTUS_TEMPLATE_PATH}/src
-echo "Checking schema directory..."
-ls -la ${DIRECTUS_TEMPLATE_PATH}/src/schema
+echo "Current working directory: $(pwd)"
+echo "Listing /directus/data directory:"
+ls -la /directus/data
+echo "Listing template directory:"
+ls -la ${DIRECTUS_TEMPLATE_PATH} || echo "Template directory not found"
+echo "Listing template src directory:"
+ls -la ${DIRECTUS_TEMPLATE_PATH}/src || echo "Template src directory not found"
+echo "Listing schema directory:"
+ls -la ${DIRECTUS_TEMPLATE_PATH}/src/schema || echo "Schema directory not found"
 
 # Bootstrap Directus
+echo "Running Directus bootstrap..."
 npx directus bootstrap
 
 # Apply template schema if exists
-if [ -f "${DIRECTUS_TEMPLATE_PATH}/src/schema/snapshot.json" ]; then
-    echo "Applying template schema from snapshot.json..."
-    npx directus schema apply "${DIRECTUS_TEMPLATE_PATH}/src/schema/snapshot.json" --yes
+SCHEMA_FILE="${DIRECTUS_TEMPLATE_PATH}/src/schema/snapshot.json"
+if [ -f "$SCHEMA_FILE" ]; then
+    echo "Found schema file at $SCHEMA_FILE"
+    echo "Applying template schema..."
+    npx directus schema apply "$SCHEMA_FILE" --yes
 else
-    echo "Warning: Schema file not found at ${DIRECTUS_TEMPLATE_PATH}/src/schema/snapshot.json"
-    echo "Contents of template directory:"
-    find ${DIRECTUS_TEMPLATE_PATH} -type f
+    echo "Warning: Schema file not found at $SCHEMA_FILE"
+    echo "Searching for schema file..."
+    find /directus/data -name "snapshot.json"
 fi
 
 # Import template data if directory exists
-if [ -d "${DIRECTUS_TEMPLATE_PATH}/src/content" ]; then
+CONTENT_DIR="${DIRECTUS_TEMPLATE_PATH}/src/content"
+if [ -d "$CONTENT_DIR" ]; then
+    echo "Found content directory at $CONTENT_DIR"
     echo "Importing template data..."
-    for file in ${DIRECTUS_TEMPLATE_PATH}/src/content/*.json; do
+    for file in "$CONTENT_DIR"/*.json; do
         if [ -f "$file" ]; then
             collection=$(basename "$file" .json)
             echo "Importing data for collection: $collection"
@@ -34,29 +42,47 @@ if [ -d "${DIRECTUS_TEMPLATE_PATH}/src/content" ]; then
         fi
     done
 else
-    echo "Warning: Content directory not found"
+    echo "Warning: Content directory not found at $CONTENT_DIR"
 fi
 
 # Import roles and permissions
-if [ -f "${DIRECTUS_TEMPLATE_PATH}/src/roles.json" ]; then
+ROLES_FILE="${DIRECTUS_TEMPLATE_PATH}/src/roles.json"
+PERMISSIONS_FILE="${DIRECTUS_TEMPLATE_PATH}/src/permissions.json"
+
+if [ -f "$ROLES_FILE" ]; then
+    echo "Found roles file at $ROLES_FILE"
     echo "Importing roles..."
-    npx directus roles import "${DIRECTUS_TEMPLATE_PATH}/src/roles.json"
+    npx directus roles import "$ROLES_FILE"
+else
+    echo "Warning: Roles file not found at $ROLES_FILE"
 fi
 
-if [ -f "${DIRECTUS_TEMPLATE_PATH}/src/permissions.json" ]; then
+if [ -f "$PERMISSIONS_FILE" ]; then
+    echo "Found permissions file at $PERMISSIONS_FILE"
     echo "Importing permissions..."
-    npx directus permissions import "${DIRECTUS_TEMPLATE_PATH}/src/permissions.json"
+    npx directus permissions import "$PERMISSIONS_FILE"
+else
+    echo "Warning: Permissions file not found at $PERMISSIONS_FILE"
 fi
 
 # Import presets and settings
-if [ -f "${DIRECTUS_TEMPLATE_PATH}/src/presets.json" ]; then
+PRESETS_FILE="${DIRECTUS_TEMPLATE_PATH}/src/presets.json"
+SETTINGS_FILE="${DIRECTUS_TEMPLATE_PATH}/src/settings.json"
+
+if [ -f "$PRESETS_FILE" ]; then
+    echo "Found presets file at $PRESETS_FILE"
     echo "Importing presets..."
-    npx directus presets import "${DIRECTUS_TEMPLATE_PATH}/src/presets.json"
+    npx directus presets import "$PRESETS_FILE"
+else
+    echo "Warning: Presets file not found at $PRESETS_FILE"
 fi
 
-if [ -f "${DIRECTUS_TEMPLATE_PATH}/src/settings.json" ]; then
+if [ -f "$SETTINGS_FILE" ]; then
+    echo "Found settings file at $SETTINGS_FILE"
     echo "Importing settings..."
-    npx directus settings import "${DIRECTUS_TEMPLATE_PATH}/src/settings.json"
+    npx directus settings import "$SETTINGS_FILE"
+else
+    echo "Warning: Settings file not found at $SETTINGS_FILE"
 fi
 
 # Start Directus
