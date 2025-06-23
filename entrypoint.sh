@@ -14,19 +14,19 @@ ls -la ${DIRECTUS_TEMPLATE_PATH}/src/schema
 npx directus bootstrap
 
 # Apply template schema if exists
-SCHEMA_FILE="${DIRECTUS_TEMPLATE_PATH}/src/schema/snapshot.json"
-if [ -f "$SCHEMA_FILE" ]; then
-    echo "Applying template schema from $SCHEMA_FILE..."
-    npx directus schema apply "$SCHEMA_FILE" --yes
+if [ -f "${DIRECTUS_TEMPLATE_PATH}/src/schema/snapshot.json" ]; then
+    echo "Applying template schema from snapshot.json..."
+    npx directus schema apply "${DIRECTUS_TEMPLATE_PATH}/src/schema/snapshot.json" --yes
 else
-    echo "Warning: Schema file not found at $SCHEMA_FILE"
+    echo "Warning: Schema file not found at ${DIRECTUS_TEMPLATE_PATH}/src/schema/snapshot.json"
+    echo "Available files in schema directory:"
+    ls -la ${DIRECTUS_TEMPLATE_PATH}/src/schema/
 fi
 
 # Import template data if directory exists
-CONTENT_DIR="${DIRECTUS_TEMPLATE_PATH}/src/content"
-if [ -d "$CONTENT_DIR" ]; then
-    echo "Importing template data from $CONTENT_DIR..."
-    for file in $CONTENT_DIR/*.json; do
+if [ -d "${DIRECTUS_TEMPLATE_PATH}/src/content" ]; then
+    echo "Importing template data..."
+    for file in ${DIRECTUS_TEMPLATE_PATH}/src/content/*.json; do
         if [ -f "$file" ]; then
             collection=$(basename "$file" .json)
             echo "Importing data for collection: $collection"
@@ -34,31 +34,29 @@ if [ -d "$CONTENT_DIR" ]; then
         fi
     done
 else
-    echo "Warning: Content directory not found at $CONTENT_DIR"
+    echo "Warning: Content directory not found"
 fi
 
 # Import roles and permissions
-ROLES_FILE="${DIRECTUS_TEMPLATE_PATH}/src/roles.json"
-PERMISSIONS_FILE="${DIRECTUS_TEMPLATE_PATH}/src/permissions.json"
-if [ -f "$ROLES_FILE" ]; then
-    echo "Importing roles from $ROLES_FILE..."
-    npx directus roles import "$ROLES_FILE"
+if [ -f "${DIRECTUS_TEMPLATE_PATH}/src/roles.json" ]; then
+    echo "Importing roles..."
+    npx directus roles import "${DIRECTUS_TEMPLATE_PATH}/src/roles.json"
 fi
-if [ -f "$PERMISSIONS_FILE" ]; then
-    echo "Importing permissions from $PERMISSIONS_FILE..."
-    npx directus permissions import "$PERMISSIONS_FILE"
+
+if [ -f "${DIRECTUS_TEMPLATE_PATH}/src/permissions.json" ]; then
+    echo "Importing permissions..."
+    npx directus permissions import "${DIRECTUS_TEMPLATE_PATH}/src/permissions.json"
 fi
 
 # Import presets and settings
-PRESETS_FILE="${DIRECTUS_TEMPLATE_PATH}/src/presets.json"
-SETTINGS_FILE="${DIRECTUS_TEMPLATE_PATH}/src/settings.json"
-if [ -f "$PRESETS_FILE" ]; then
-    echo "Importing presets from $PRESETS_FILE..."
-    npx directus presets import "$PRESETS_FILE"
+if [ -f "${DIRECTUS_TEMPLATE_PATH}/src/presets.json" ]; then
+    echo "Importing presets..."
+    npx directus presets import "${DIRECTUS_TEMPLATE_PATH}/src/presets.json"
 fi
-if [ -f "$SETTINGS_FILE" ]; then
-    echo "Importing settings from $SETTINGS_FILE..."
-    npx directus settings import "$SETTINGS_FILE"
+
+if [ -f "${DIRECTUS_TEMPLATE_PATH}/src/settings.json" ]; then
+    echo "Importing settings..."
+    npx directus settings import "${DIRECTUS_TEMPLATE_PATH}/src/settings.json"
 fi
 
 # Start Directus
