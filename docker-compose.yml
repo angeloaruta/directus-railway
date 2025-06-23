@@ -48,6 +48,7 @@ services:
       - ./scripts:/directus/scripts
       - ./snapshots:/directus/snapshots
       - ./migrations:/directus/migrations
+      - ./template:/directus/template
     depends_on:
       database:
         condition: service_healthy
