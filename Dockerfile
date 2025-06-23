@@ -33,6 +33,6 @@ COPY ./config.cjs /directus/data/config.cjs
 COPY entrypoint.sh /directus/data/entrypoint.sh
 WORKDIR /directus/data
 USER root
-RUN chmod +x ./entrypoint.sh
+RUN chmod +x ./directus/data/entrypoint.sh
 USER node
 ENTRYPOINT ["./entrypoint.sh"]
