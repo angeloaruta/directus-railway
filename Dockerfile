@@ -24,20 +24,16 @@ RUN npx directus bootstrap
 
 USER root
 
-# Create and set permissions for data directory
-RUN mkdir -p /directus/data && \
-    mkdir -p /directus/data/uploads && \
-    mkdir -p /directus/data/extensions && \
-    mkdir -p /directus/data/templates && \
-    mkdir -p /directus/data/migrations && \
-    mkdir -p /directus/data/snapshots && \
-    mkdir -p /directus/data/template/src && \
-    chown -R node:node /directus/data && \
-    chmod -R 755 /directus/data
+# Create base directories
+RUN mkdir -p /directus/data/uploads \
+    /directus/data/extensions \
+    /directus/data/templates \
+    /directus/data/migrations \
+    /directus/data/snapshots \
+    /directus/data/template
 
-# Copy template package.json and all source files
-COPY --chown=node:node ./template/package.json /directus/data/template/
-COPY --chown=node:node ./template/src/ /directus/data/template/src/
+# Copy template files
+COPY --chown=node:node ./template /directus/data/template/
 
 # Copying other directories
 COPY --chown=node:node ./extensions /directus/data/extensions
@@ -45,6 +41,10 @@ COPY --chown=node:node ./templates /directus/data/templates
 COPY --chown=node:node ./migrations /directus/data/migrations
 COPY --chown=node:node ./snapshots /directus/data/snapshots
 COPY --chown=node:node ./config.cjs /directus/data/config.cjs           
+
+# Set permissions after copying
+RUN chown -R node:node /directus/data && \
+    chmod -R 755 /directus/data
 
 # Custom entrypoint script to run Directus on Railway for migrations, snapshots, and extensions
 COPY entrypoint.sh /directus/entrypoint.sh

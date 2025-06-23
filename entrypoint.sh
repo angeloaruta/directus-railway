@@ -19,8 +19,8 @@ if [ -f "${DIRECTUS_TEMPLATE_PATH}/src/schema/snapshot.json" ]; then
     npx directus schema apply "${DIRECTUS_TEMPLATE_PATH}/src/schema/snapshot.json" --yes
 else
     echo "Warning: Schema file not found at ${DIRECTUS_TEMPLATE_PATH}/src/schema/snapshot.json"
-    echo "Available files in schema directory:"
-    ls -la ${DIRECTUS_TEMPLATE_PATH}/src/schema/
+    echo "Contents of template directory:"
+    find ${DIRECTUS_TEMPLATE_PATH} -type f
 fi
 
 # Import template data if directory exists
