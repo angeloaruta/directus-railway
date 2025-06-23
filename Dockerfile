@@ -9,19 +9,8 @@ USER root
 
 RUN npm install -g pnpm --force
 
-# Create base directories with proper permissions first
-RUN mkdir -p /directus/data/uploads \
-    /directus/data/extensions \
-    /directus/data/templates \
-    /directus/data/migrations \
-    /directus/data/snapshots \
-    /directus/data/template \
-    /directus/data/template/src \
-    /directus/data/template/src/schema \
-    /directus/data/template/src/content \
-    /directus/data/template/src/assets && \
-    chown -R node:node /directus/data && \
-    chmod -R 755 /directus/data
+# Create template directory to store initial files
+RUN mkdir -p /directus/template
 
 USER node
 
@@ -38,36 +27,27 @@ RUN npx directus bootstrap
 
 WORKDIR /directus
 
-# Copy template files with proper ownership
-COPY --chown=node:node ./template/package.json ./template/README.md /directus/data/template/
-COPY --chown=node:node ./template/src/schema/snapshot.json /directus/data/template/src/schema/
-COPY --chown=node:node ./template/src/content/*.json /directus/data/template/src/content/
-COPY --chown=node:node ./template/src/assets/* /directus/data/template/src/assets/
-COPY --chown=node:node ./template/src/*.json /directus/data/template/src/
+# Copy template files to template directory
+COPY --chown=node:node ./template/package.json ./template/README.md /directus/template/
+COPY --chown=node:node ./template/src/schema/snapshot.json /directus/template/src/schema/
+COPY --chown=node:node ./template/src/content/*.json /directus/template/src/content/
+COPY --chown=node:node ./template/src/assets/* /directus/template/src/assets/
+COPY --chown=node:node ./template/src/*.json /directus/template/src/
 
-# Copying other directories with proper ownership
-COPY --chown=node:node ./extensions /directus/data/extensions
-COPY --chown=node:node ./templates /directus/data/templates
-COPY --chown=node:node ./migrations /directus/data/migrations
-COPY --chown=node:node ./snapshots /directus/data/snapshots
-COPY --chown=node:node ./config.cjs /directus/data/config.cjs           
+# Copying other directories
+COPY --chown=node:node ./extensions /directus/template/extensions
+COPY --chown=node:node ./templates /directus/template/templates
+COPY --chown=node:node ./migrations /directus/template/migrations
+COPY --chown=node:node ./snapshots /directus/template/snapshots
+COPY --chown=node:node ./config.cjs /directus/template/config.cjs           
 
 # Custom entrypoint script to run Directus on Railway for migrations, snapshots, and extensions
-COPY --chown=node:node entrypoint.sh /directus/entrypoint.sh
+COPY --chown=root:root entrypoint.sh /directus/entrypoint.sh
 RUN chmod +x /directus/entrypoint.sh
 
 # Set environment variables for template
 ENV DIRECTUS_TEMPLATE_PATH=/directus/data/template
 ENV DIRECTUS_TEMPLATE_NAME=directus-template-cms
 
-# Final permission check and fix for data directory
 USER root
-RUN chown -R node:node /directus/data && \
-    chmod -R 755 /directus/data && \
-    # Make uploads directory writable
-    chmod 775 /directus/data/uploads && \
-    # Make extensions directory readable
-    chmod 755 /directus/data/extensions
-
-USER node
 ENTRYPOINT ["./entrypoint.sh"]

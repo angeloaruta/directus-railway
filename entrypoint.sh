@@ -4,8 +4,35 @@ echo "Starting Directus with template initialization..."
 
 # Debug information
 echo "Current working directory: $(pwd)"
+
+# Create necessary directories and set permissions after volume mount
+echo "Setting up directories and permissions..."
+mkdir -p /directus/data/uploads \
+    /directus/data/extensions \
+    /directus/data/templates \
+    /directus/data/migrations \
+    /directus/data/snapshots \
+    /directus/data/template \
+    /directus/data/template/src \
+    /directus/data/template/src/schema \
+    /directus/data/template/src/content \
+    /directus/data/template/src/assets
+
+# Set proper ownership and permissions
+chown -R node:node /directus/data
+chmod -R 755 /directus/data
+chmod 775 /directus/data/uploads
+chmod 755 /directus/data/extensions
+
 echo "Listing /directus/data directory:"
 ls -la /directus/data
+
+# Copy template files if they don't exist
+if [ ! -f "${DIRECTUS_TEMPLATE_PATH}/src/schema/snapshot.json" ]; then
+    echo "Copying template files..."
+    cp -r /directus/template/* /directus/data/template/ || echo "No template files to copy"
+fi
+
 echo "Listing template directory:"
 ls -la ${DIRECTUS_TEMPLATE_PATH} || echo "Template directory not found"
 echo "Listing template src directory:"
@@ -85,6 +112,13 @@ else
     echo "Warning: Settings file not found at $SETTINGS_FILE"
 fi
 
+# Final permission check
+echo "Performing final permission check..."
+chown -R node:node /directus/data
+chmod -R 755 /directus/data
+chmod 775 /directus/data/uploads
+chmod 755 /directus/data/extensions
+
 # Start Directus
 echo "Starting Directus..."
-node cli.js bootstrap && pm2-runtime start ecosystem.config.cjs
+exec node cli.js bootstrap && pm2-runtime start ecosystem.config.cjs
