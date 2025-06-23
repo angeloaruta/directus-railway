@@ -24,21 +24,11 @@ chmod -R 755 /directus/data
 chmod 775 /directus/data/uploads
 chmod 755 /directus/data/extensions
 
-echo "Listing /directus/data directory:"
-ls -la /directus/data
-
 # Copy template files if they don't exist
 if [ ! -f "${DIRECTUS_TEMPLATE_PATH}/src/schema/snapshot.json" ]; then
     echo "Copying template files..."
     cp -r /directus/template/* /directus/data/template/ || echo "No template files to copy"
 fi
-
-echo "Listing template directory:"
-ls -la ${DIRECTUS_TEMPLATE_PATH} || echo "Template directory not found"
-echo "Listing template src directory:"
-ls -la ${DIRECTUS_TEMPLATE_PATH}/src || echo "Template src directory not found"
-echo "Listing schema directory:"
-ls -la ${DIRECTUS_TEMPLATE_PATH}/src/schema || echo "Schema directory not found"
 
 # Bootstrap Directus
 echo "Running Directus bootstrap..."
@@ -56,13 +46,35 @@ else
     find /directus/data -name "snapshot.json"
 fi
 
-# Import template data if directory exists using schema snapshot
+# Import template data if directory exists
 CONTENT_DIR="${DIRECTUS_TEMPLATE_PATH}/src/content"
 if [ -d "$CONTENT_DIR" ]; then
     echo "Found content directory at $CONTENT_DIR"
     echo "Importing template data..."
-    # Use schema snapshot to import data
-    npx directus schema snapshot "$SCHEMA_FILE" --yes
+    # Create a temporary directory for the combined schema
+    TEMP_DIR=$(mktemp -d)
+    cp "$SCHEMA_FILE" "$TEMP_DIR/combined_schema.json"
+    
+    # Process each JSON file in the content directory
+    for file in "$CONTENT_DIR"/*.json; do
+        if [ -f "$file" ]; then
+            collection=$(basename "$file" .json)
+            echo "Processing data for collection: $collection"
+            # Use jq to merge the data into the schema
+            jq --arg collection "$collection" \
+               --slurpfile data "$file" \
+               '.collections[$collection].data = $data[0]' \
+               "$TEMP_DIR/combined_schema.json" > "$TEMP_DIR/temp.json" && \
+            mv "$TEMP_DIR/temp.json" "$TEMP_DIR/combined_schema.json"
+        fi
+    done
+    
+    # Apply the combined schema
+    echo "Applying combined schema with data..."
+    npx directus schema apply "$TEMP_DIR/combined_schema.json" --yes
+    
+    # Cleanup
+    rm -rf "$TEMP_DIR"
 else
     echo "Warning: Content directory not found at $CONTENT_DIR"
 fi
@@ -71,40 +83,45 @@ fi
 ROLES_FILE="${DIRECTUS_TEMPLATE_PATH}/src/roles.json"
 PERMISSIONS_FILE="${DIRECTUS_TEMPLATE_PATH}/src/permissions.json"
 
+# Create a temporary file for roles
+echo "Setting up roles and permissions..."
+cat > /tmp/roles.json << 'EOL'
+{
+  "version": 1,
+  "directus": "11.8.0",
+  "collections": [],
+  "fields": [],
+  "relations": [],
+  "roles": []
+}
+EOL
+
+# Merge roles into the temporary schema
 if [ -f "$ROLES_FILE" ]; then
     echo "Found roles file at $ROLES_FILE"
     echo "Importing roles..."
-    npx directus schema apply "$ROLES_FILE" --yes
-else
-    echo "Warning: Roles file not found at $ROLES_FILE"
+    jq -s '.[0].roles = .[1] | .[0]' /tmp/roles.json "$ROLES_FILE" > /tmp/roles_merged.json
+    npx directus schema apply /tmp/roles_merged.json --yes
 fi
 
+# Create a temporary file for permissions
+cat > /tmp/permissions.json << 'EOL'
+{
+  "version": 1,
+  "directus": "11.8.0",
+  "collections": [],
+  "fields": [],
+  "relations": [],
+  "permissions": []
+}
+EOL
+
+# Merge permissions into the temporary schema
 if [ -f "$PERMISSIONS_FILE" ]; then
     echo "Found permissions file at $PERMISSIONS_FILE"
     echo "Importing permissions..."
-    npx directus schema apply "$PERMISSIONS_FILE" --yes
-else
-    echo "Warning: Permissions file not found at $PERMISSIONS_FILE"
-fi
-
-# Import presets and settings
-PRESETS_FILE="${DIRECTUS_TEMPLATE_PATH}/src/presets.json"
-SETTINGS_FILE="${DIRECTUS_TEMPLATE_PATH}/src/settings.json"
-
-if [ -f "$PRESETS_FILE" ]; then
-    echo "Found presets file at $PRESETS_FILE"
-    echo "Importing presets..."
-    npx directus schema apply "$PRESETS_FILE" --yes
-else
-    echo "Warning: Presets file not found at $PRESETS_FILE"
-fi
-
-if [ -f "$SETTINGS_FILE" ]; then
-    echo "Found settings file at $SETTINGS_FILE"
-    echo "Importing settings..."
-    npx directus schema apply "$SETTINGS_FILE" --yes
-else
-    echo "Warning: Settings file not found at $SETTINGS_FILE"
+    jq -s '.[0].permissions = .[1] | .[0]' /tmp/permissions.json "$PERMISSIONS_FILE" > /tmp/permissions_merged.json
+    npx directus schema apply /tmp/permissions_merged.json --yes
 fi
 
 # Final permission check
