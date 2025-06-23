@@ -4,7 +4,7 @@ FROM directus/directus:11.8.0
 USER root
 
 # Install jq for JSON processing
-RUN apt-get update && apt-get install -y jq && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache jq
 
 # Set the environment variable for your timezone if needed
 # RUN apk add --no-cache tzdata
