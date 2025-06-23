@@ -30,9 +30,9 @@ COPY ./template /directus/data/template
 COPY ./config.cjs /directus/data/config.cjs           
 
 # Custom entrypoint script to run Directus on Railway for migrations, snapshots, and extensions
-COPY entrypoint.sh /directus/data/entrypoint.sh
-WORKDIR /directus/data
+COPY entrypoint.sh /directus/entrypoint.sh
+WORKDIR /directus
 USER root
-RUN chmod +x ./directus/data/entrypoint.sh
+RUN chmod +x ./entrypoint.sh
 USER node
 ENTRYPOINT ["./entrypoint.sh"]
